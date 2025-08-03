@@ -50,8 +50,9 @@ def SelectedFileItem(file: ft.FilePickerFile, idx: int) -> ft.SafeArea:
     )
 
 
-def CompressedFileItem(file_path: str, idx: int) -> ft.SafeArea:
+def CompressedFileItem(file_path: str, origin_size, idx: int) -> ft.SafeArea:
     file = Path(file_path)
+    compressed_size = file.stat().st_size
 
     def calculate_size(size: int) -> str:
         if size < 1024:
@@ -60,8 +61,14 @@ def CompressedFileItem(file_path: str, idx: int) -> ft.SafeArea:
             return f"{size / 1024:.1f} KB"
         else:
             return f"{size / (1024 * 1024):.1f} MB"
-        
-    # TODO: 圧縮率表示
+
+    def calculate_ratio(original: int, compressed: int) -> str:
+        if original == 0:
+            return "N/A"
+        ratio = 100 - ((compressed / original) * 100)
+        return f"-{ratio:.1f}%" if ratio > 0 else "+" + f"{ratio:.1f}%".replace("-", "")
+
+    ratio = calculate_ratio(origin_size, compressed_size)
 
     return ft.SafeArea(
         content=ft.Container(
@@ -83,6 +90,17 @@ def CompressedFileItem(file_path: str, idx: int) -> ft.SafeArea:
                     ),
                     ft.Row(
                         controls=[
+                            ft.Container(
+                                content=ft.Text(
+                                    ratio,
+                                    style=ft.TextStyle(size=14, color=ft.Colors.WHITE, word_spacing=3, weight=ft.FontWeight.BOLD),
+                                ),
+                                bgcolor=(
+                                    ft.Colors.GREEN if "-" in ratio else ft.Colors.RED
+                                ),
+                                padding=ft.padding.symmetric(5,5),
+                                border_radius=4
+                            ),
                             ft.Text(
                                 f"{calculate_size(file.stat().st_size)}",
                                 style=ft.TextStyle(size=14, color=ft.Colors.GREY),
@@ -160,9 +178,9 @@ def CompressedFiles(global_state: AppGlobalState) -> ft.Container:
                         controls=[
                             ft.ListView(
                                 controls=[
-                                    CompressedFileItem(file_path, idx)
-                                    for idx, file_path in enumerate(
-                                        global_state.compressed_file_paths
+                                    CompressedFileItem(file_path, origin_size, idx)
+                                    for idx, (file_path, origin_size) in enumerate(
+                                        global_state.compressed_file_paths.items()
                                     )
                                 ],
                                 expand=True,

@@ -1,12 +1,12 @@
 import flet as ft
 from dataclasses import dataclass, field
-from typing import Literal
+from typing import Literal, Dict, List
 
 @dataclass
 class AppGlobalState():
     compressed_dir: str = "compressed"
-    selected_files: list[ft.FilePickerFile] = field(default_factory=list)
-    compressed_file_paths: list[str] = field(default_factory=list)
+    selected_files: List[ft.FilePickerFile] = field(default_factory=list)
+    compressed_file_paths: Dict[str, int] = field(default_factory=dict[str,int])
     theme_mode: Literal[ft.ThemeMode.LIGHT] | Literal[ft.ThemeMode.DARK] = ft.ThemeMode.LIGHT
     theme_icon: ft.Icons = ft.Icons.LIGHT_MODE
     quality: Literal["screen", "ebook", "printer"] = "screen"

@@ -66,6 +66,7 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
             input_path = Path(file.path)  # type: ignore
             output_filename = f"{input_path.stem}_compressed.pdf"
             save_path = save_path_dir / output_filename
+            origin_size = input_path.stat().st_size
 
             subprocess.run(
                 [
@@ -80,7 +81,8 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
                     str(input_path),
                 ]
             )
-            global_state.compressed_file_paths.append(str(save_path))
+
+            global_state.compressed_file_paths[str(save_path)] = origin_size
 
     return ft.Container(
         content=ft.Column(
