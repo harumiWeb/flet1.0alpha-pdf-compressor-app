@@ -1,7 +1,7 @@
 import flet as ft
 
 from state import AppGlobalState
-from components.sidebar import Sidebar
+from components import Sidebar, SelectFiles, CompressedFiles
 
 APP_NAME = "Python PDF Compressor"
 
@@ -12,17 +12,23 @@ def AppView(state: AppGlobalState, page: ft.Page) -> ft.Container:
             [
                 Sidebar(state, page),  # type: ignore
                 ft.Container(
-                    ft.Column(
-                        [
-                            ft.Text("Main Content Area"),
+                    content=ft.Column(
+                        controls=[
+                            SelectFiles(state),
+                            ft.Divider(),
+                            CompressedFiles(state),
                         ],
+                        expand=True,
                         alignment=ft.MainAxisAlignment.START,
+                        spacing=3,
                     ),
                     expand=True,
                 ),
             ],
             alignment=ft.MainAxisAlignment.START,
-            spacing=10,
+            spacing=0,
+            expand=True,
+            vertical_alignment=ft.CrossAxisAlignment.START,
         ),
         expand=True,
     )
@@ -31,17 +37,17 @@ def AppView(state: AppGlobalState, page: ft.Page) -> ft.Container:
 def main(page: ft.Page):
     global_state = AppGlobalState()
 
-    page.theme_mode = global_state.theme_mode  # type: ignore
+    page.theme_mode = ft.ThemeMode.LIGHT
     page.theme = ft.Theme(
-        color_scheme_seed= ft.Colors.BLUE,
+        color_scheme_seed=ft.Colors.BLUE,
     )
     page.dark_theme = ft.Theme(
         color_scheme_seed=ft.Colors.GREEN,
     )
     page.title = APP_NAME
     page.padding = 0
-    
-    page.add(ft.ControlBuilder(global_state, lambda state: AppView(state, page)))
+
+    page.add(ft.ControlBuilder(global_state, lambda state: AppView(state, page), expand=True))
 
 
 ft.run(main)

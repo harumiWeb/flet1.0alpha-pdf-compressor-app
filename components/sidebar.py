@@ -17,7 +17,7 @@ class QualityDropdown(ft.Dropdown):
             label="Image Quality",
         )
         self.border_color = (
-            ft.Colors.BLACK if global_state.theme_mode == "light" else ft.Colors.WHITE
+            ft.Colors.BLACK if global_state.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.WHITE
         )
 
     def __setattr__(self, name: str, value: Any) -> None:
@@ -96,12 +96,12 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
             horizontal_alignment=ft.CrossAxisAlignment.END,
             spacing=10,
         ),
-        alignment=ft.Alignment.TOP_LEFT,
-        height=page.window.height,
+        alignment=ft.Alignment.TOP_CENTER,
         padding=ft.padding.all(10),
         bgcolor=(
             ft.Colors.BLUE_GREY_100
-            if global_state.theme_mode == "light"
+            if global_state.theme_mode == ft.ThemeMode.LIGHT
             else ft.Colors.BLACK
         ),
+        width=220,
     )
