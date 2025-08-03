@@ -4,6 +4,7 @@ from typing import Literal
 
 @dataclass
 class AppGlobalState():
+    compressed_dir: str = "compressed"
     selected_files: list[ft.FilePickerFile] = field(default_factory=list)
     compressed_file_paths: list[str] = field(default_factory=list)
     theme_mode: Literal[ft.ThemeMode.LIGHT] | Literal[ft.ThemeMode.DARK] = ft.ThemeMode.LIGHT

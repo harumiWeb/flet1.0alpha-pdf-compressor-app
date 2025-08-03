@@ -1,4 +1,6 @@
 import flet as ft
+import shutil
+from pathlib import Path
 
 from state import AppGlobalState
 from components import Sidebar, SelectFiles, CompressedFiles
@@ -46,6 +48,12 @@ def main(page: ft.Page):
     )
     page.title = APP_NAME
     page.padding = 0
+
+    for item in Path(global_state.compressed_dir).iterdir():
+        if item.is_file():
+            item.unlink()
+        elif item.is_dir():
+            shutil.rmtree(item)
 
     page.add(ft.ControlBuilder(global_state, lambda state: AppView(state, page), expand=True))
 

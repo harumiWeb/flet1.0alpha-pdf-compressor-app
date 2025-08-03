@@ -1,6 +1,8 @@
+import subprocess
 from typing import Any
 import flet as ft
 from state import AppGlobalState
+from pathlib import Path
 
 
 class QualityDropdown(ft.Dropdown):
@@ -17,7 +19,9 @@ class QualityDropdown(ft.Dropdown):
             label="Image Quality",
         )
         self.border_color = (
-            ft.Colors.BLACK if global_state.theme_mode == ft.ThemeMode.LIGHT else ft.Colors.WHITE
+            ft.Colors.BLACK
+            if global_state.theme_mode == ft.ThemeMode.LIGHT
+            else ft.Colors.WHITE
         )
 
     def __setattr__(self, name: str, value: Any) -> None:
@@ -39,6 +43,44 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
         )
         if files:
             global_state.selected_files.extend(files)
+
+    async def compress(e: ft.Event[ft.TextButton] | None = None):
+        # save_dir = await file_picker.get_directory_path_async(
+        #     dialog_title="Select Save Directory"
+        # )
+        # if not save_dir:
+        #     cancel_dlg = ft.AlertDialog(
+        #         content=ft.Container(ft.Text("Cancelled!")),
+        #         actions=[
+        #             ft.TextButton(
+        #                 content=ft.Text("OK"),
+        #                 on_click=lambda e: e.page.close(cancel_dlg), # type: ignore
+        #             )
+        #         ],
+        #     )
+        #     e.page.show_dialog(cancel_dlg)  # type: ignore
+        #     return
+        save_path_dir = Path(global_state.compressed_dir)
+
+        for file in global_state.selected_files:
+            input_path = Path(file.path)  # type: ignore
+            output_filename = f"{input_path.stem}_compressed.pdf"
+            save_path = save_path_dir / output_filename
+
+            subprocess.run(
+                [
+                    r".\assets\bin\gswin64c",
+                    "-sDEVICE=pdfwrite",
+                    "-dCompatibilityLevel=1.4",
+                    f"-dPDFSETTINGS=/{global_state.quality}",
+                    "-dNOPAUSE",
+                    "-dQUIET",
+                    "-dBATCH",
+                    f"-sOutputFile={str(save_path)}",
+                    str(input_path),
+                ]
+            )
+            global_state.compressed_file_paths.append(str(save_path))
 
     return ft.Container(
         content=ft.Column(
@@ -74,20 +116,34 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
                             QualityDropdown(global_state),
                             ft.TextButton(
                                 "COMPRESS",
-                                on_click=lambda e: page.add(ft.Text("Compressing...")),
+                                on_click=compress,
                                 icon=ft.Icons.COMPRESS,
                                 style=ft.ButtonStyle(
-                                    color=ft.Colors.WHITE if global_state.selected_files else ft.Colors.GREY,
-                                    bgcolor=ft.Colors.GREEN_ACCENT_700 if global_state.selected_files else ft.Colors.GREY_300,
+                                    color=(
+                                        ft.Colors.WHITE
+                                        if global_state.selected_files
+                                        else ft.Colors.GREY
+                                    ),
+                                    bgcolor=(
+                                        ft.Colors.GREEN_ACCENT_700
+                                        if global_state.selected_files
+                                        else ft.Colors.GREY_300
+                                    ),
                                     shape=ft.RoundedRectangleBorder(radius=5),
-                                    padding=ft.padding.symmetric(horizontal=20, vertical=18)
+                                    padding=ft.padding.symmetric(
+                                        horizontal=20, vertical=18
+                                    ),
                                 ),
-                                tooltip="Start Compression" if global_state.selected_files else "No files selected",
+                                tooltip=(
+                                    "Start Compression"
+                                    if global_state.selected_files
+                                    else "No files selected"
+                                ),
                                 width=200,
                                 disabled=not global_state.selected_files,
                             ),
                         ],
-                        spacing=20
+                        spacing=20,
                     ),
                     expand=True,
                 ),
