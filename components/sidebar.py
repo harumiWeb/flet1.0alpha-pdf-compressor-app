@@ -1,8 +1,9 @@
 import subprocess
 from typing import Any
 import flet as ft
-from state import AppGlobalState
+from state import AppGlobalState, SidebarState
 from pathlib import Path
+import asyncio
 
 
 class QualityDropdown(ft.Dropdown):
@@ -30,10 +31,35 @@ class QualityDropdown(ft.Dropdown):
         return super().__setattr__(name, value)
 
 
+def ProcessingDialog(pb: ft.ProgressBar) -> ft.AlertDialog:
+    dlg = ft.AlertDialog(
+        content=ft.Container(
+            content=ft.Column(
+                [
+                    ft.Row(
+                        [
+                            ft.Text("compressing..."),
+                        ]
+                    ),
+                    pb,
+                ]
+            ),
+            height=200,
+        ),
+        modal=True,
+        title="Processing",
+    )
+    return dlg
+
+
 def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
+    my_state = SidebarState()
+
     # add to services for file picker
     file_picker = ft.FilePicker()
     page.services.append(file_picker)
+
+    pd = ProcessingDialog(my_state.pb)
 
     async def open_file_picker(e: ft.ControlEvent | None = None):
         files = await file_picker.pick_files_async(
@@ -44,45 +70,43 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
         if files:
             global_state.selected_files.extend(files)
 
-    async def compress(e: ft.Event[ft.TextButton] | None = None):
-        # save_dir = await file_picker.get_directory_path_async(
-        #     dialog_title="Select Save Directory"
-        # )
-        # if not save_dir:
-        #     cancel_dlg = ft.AlertDialog(
-        #         content=ft.Container(ft.Text("Cancelled!")),
-        #         actions=[
-        #             ft.TextButton(
-        #                 content=ft.Text("OK"),
-        #                 on_click=lambda e: e.page.close(cancel_dlg), # type: ignore
-        #             )
-        #         ],
-        #     )
-        #     e.page.show_dialog(cancel_dlg)  # type: ignore
-        #     return
+    def single_compress(file: ft.FilePickerFile, save_path_dir: Path):
+        input_path = Path(file.path)  # type: ignore
+        output_filename = f"{input_path.stem}.pdf"
+        save_path = save_path_dir / output_filename
+        origin_size = input_path.stat().st_size
+
+        subprocess.run(
+            [
+                r".\assets\bin\gswin64c",
+                "-sDEVICE=pdfwrite",
+                "-dCompatibilityLevel=1.4",
+                f"-dPDFSETTINGS=/{global_state.quality}",
+                "-dNOPAUSE",
+                "-dQUIET",
+                "-dBATCH",
+                f"-sOutputFile={str(save_path)}",
+                str(input_path),
+            ]
+        )
+
+        global_state.compressed_file_paths[str(save_path)] = origin_size
+
+        my_state.update_progress(
+            len(global_state.compressed_file_paths),
+            len(global_state.selected_files),
+        )
+
+    async def handle_compress_click(e: ft.Event[ft.TextButton]):
+        page.show_dialog(pd)
+        await asyncio.sleep(0.001)
+
         save_path_dir = Path(global_state.compressed_dir)
-
         for file in global_state.selected_files:
-            input_path = Path(file.path)  # type: ignore
-            output_filename = f"{input_path.stem}_compressed.pdf"
-            save_path = save_path_dir / output_filename
-            origin_size = input_path.stat().st_size
+            single_compress(file, save_path_dir)
+            await asyncio.sleep(0.001)
 
-            subprocess.run(
-                [
-                    r".\assets\bin\gswin64c",
-                    "-sDEVICE=pdfwrite",
-                    "-dCompatibilityLevel=1.4",
-                    f"-dPDFSETTINGS=/{global_state.quality}",
-                    "-dNOPAUSE",
-                    "-dQUIET",
-                    "-dBATCH",
-                    f"-sOutputFile={str(save_path)}",
-                    str(input_path),
-                ]
-            )
-
-            global_state.compressed_file_paths[str(save_path)] = origin_size
+        page.pop_dialog()
 
     return ft.Container(
         content=ft.Column(
@@ -118,7 +142,9 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
                             QualityDropdown(global_state),
                             ft.TextButton(
                                 "COMPRESS",
-                                on_click=compress,
+                                on_click=lambda e: asyncio.create_task(
+                                    handle_compress_click(e),
+                                ),
                                 icon=ft.Icons.COMPRESS,
                                 style=ft.ButtonStyle(
                                     color=(

@@ -1,5 +1,7 @@
 import flet as ft
 from pathlib import Path
+import shutil
+import tempfile
 
 from state import AppGlobalState
 
@@ -18,8 +20,10 @@ def SelectedFileItem(file: ft.FilePickerFile, idx: int) -> ft.SafeArea:
             content=ft.Row(
                 controls=[
                     ft.Text(
-                        f"{idx + 1}.",
+                        f"{idx + 1}",
                         style=ft.TextStyle(size=16, weight=ft.FontWeight.BOLD),
+                        width=30,
+                        text_align=ft.TextAlign.CENTER
                     ),
                     ft.Icon(
                         name=ft.Icons.PICTURE_AS_PDF,
@@ -75,8 +79,10 @@ def CompressedFileItem(file_path: str, origin_size, idx: int) -> ft.SafeArea:
             content=ft.Row(
                 controls=[
                     ft.Text(
-                        f"{idx + 1}.",
+                        f"{idx + 1}",
                         style=ft.TextStyle(size=16, weight=ft.FontWeight.BOLD),
+                        width=30,
+                        text_align=ft.TextAlign.CENTER
                     ),
                     ft.Icon(
                         name=ft.Icons.PICTURE_AS_PDF,
@@ -93,13 +99,18 @@ def CompressedFileItem(file_path: str, origin_size, idx: int) -> ft.SafeArea:
                             ft.Container(
                                 content=ft.Text(
                                     ratio,
-                                    style=ft.TextStyle(size=14, color=ft.Colors.WHITE, word_spacing=3, weight=ft.FontWeight.BOLD),
+                                    style=ft.TextStyle(
+                                        size=14,
+                                        color=ft.Colors.WHITE,
+                                        word_spacing=3,
+                                        weight=ft.FontWeight.BOLD,
+                                    ),
                                 ),
                                 bgcolor=(
                                     ft.Colors.GREEN if "-" in ratio else ft.Colors.RED
                                 ),
-                                padding=ft.padding.symmetric(5,5),
-                                border_radius=4
+                                padding=ft.padding.symmetric(5, 5),
+                                border_radius=4,
                             ),
                             ft.Text(
                                 f"{calculate_size(file.stat().st_size)}",
@@ -162,16 +173,93 @@ def SelectFiles(global_state: AppGlobalState) -> ft.Container:
     )
 
 
-def CompressedFiles(global_state: AppGlobalState) -> ft.Container:
+def CompressedFiles(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
+    # add to services for file picker
+    file_picker = ft.FilePicker()
+    page.services.append(file_picker)
+
+    async def save_file(e: ft.Event[ft.TextButton]):
+        save_dir = await file_picker.get_directory_path_async(
+            dialog_title="Select Save Directory"
+        )
+        if not save_dir:
+            cancel_dlg = ft.AlertDialog(
+                content=ft.Container(ft.Text("Cancelled!")),
+                actions=[
+                    ft.TextButton(
+                        content=ft.Text("OK"),
+                        on_click=lambda e: e.page.close(cancel_dlg),  # type: ignore
+                    )
+                ],
+            )
+            e.page.show_dialog(cancel_dlg)  # type: ignore
+            return
+
+        source_dir = Path("compressed")
+        destination_dir = Path(save_dir)
+        output_zip_name = "compressed_pdf"
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            temp_zip_path = temp_path / output_zip_name
+
+            shutil.make_archive(str(temp_zip_path), "zip", root_dir=str(source_dir))
+
+            zip_file = temp_zip_path.with_suffix(".zip")
+            destination_path = destination_dir / zip_file.name
+
+            shutil.move(str(zip_file), str(destination_path))
+
+            success_dlg = ft.AlertDialog(
+                content=ft.Container(ft.Text("Saved!")),
+                actions=[
+                    ft.TextButton(
+                        content=ft.Text("OK"),
+                        on_click=lambda e: e.page.close(success_dlg),  # type: ignore
+                    )
+                ],
+            )
+            e.page.show_dialog(success_dlg)  # type: ignore
+        return
+
     return ft.Container(
         content=ft.Column(
             [
-                ft.Text(
-                    "Compressed Files",
-                    style=ft.TextStyle(
-                        size=20,
-                        weight=ft.FontWeight.BOLD,
-                    ),
+                ft.Row(
+                    controls=[
+                        ft.Text(
+                            "Compressed Files",
+                            style=ft.TextStyle(
+                                size=20,
+                                weight=ft.FontWeight.BOLD,
+                            ),
+                        ),
+                        ft.Row(
+                            controls=[
+                                ft.TextButton(
+                                    "Save Zip",
+                                    on_click=save_file,
+                                    icon=ft.Icons.SAVE_ALT_OUTLINED,
+                                    style=ft.ButtonStyle(
+                                        color=ft.Colors.WHITE,
+                                        bgcolor=(
+                                            ft.Colors.GREEN_ACCENT_400
+                                            if global_state.compressed_file_paths
+                                            else ft.Colors.GREY_300
+                                        ),
+                                        shape=ft.RoundedRectangleBorder(radius=5),
+                                    ),
+                                    width=200,
+                                    tooltip="Save File" if global_state.compressed_file_paths else "Please Compress",
+                                    disabled=(
+                                        False
+                                        if global_state.compressed_file_paths
+                                        else True
+                                    ),
+                                ),
+                            ]
+                        ),
+                    ]
                 ),
                 ft.Container(
                     content=ft.Column(

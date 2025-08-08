@@ -9,6 +9,13 @@ APP_NAME = "Python PDF Compressor"
 
 
 def AppView(state: AppGlobalState, page: ft.Page) -> ft.Container:
+    tab = ft.Tabs(
+        scrollable=False,
+        selected_index=state.tab_options.index(state.tab_selected),
+        on_change=state.tab_changed,
+        tabs=[ft.Tab(label=tab) for tab in state.tab_options],
+    )
+
     return ft.Container(
         content=ft.Row(
             [
@@ -16,9 +23,12 @@ def AppView(state: AppGlobalState, page: ft.Page) -> ft.Container:
                 ft.Container(
                     content=ft.Column(
                         controls=[
-                            SelectFiles(state),
-                            ft.Divider(),
-                            CompressedFiles(state),
+                            tab,
+                            (
+                                SelectFiles(state)
+                                if tab.selected_index == 0
+                                else CompressedFiles(state, page)
+                            ),
                         ],
                         expand=True,
                         alignment=ft.MainAxisAlignment.START,
@@ -38,6 +48,7 @@ def AppView(state: AppGlobalState, page: ft.Page) -> ft.Container:
 
 def main(page: ft.Page):
     global_state = AppGlobalState()
+    # global_state.tabs =
 
     page.theme_mode = ft.ThemeMode.LIGHT
     page.theme = ft.Theme(
@@ -55,7 +66,9 @@ def main(page: ft.Page):
         elif item.is_dir():
             shutil.rmtree(item)
 
-    page.add(ft.ControlBuilder(global_state, lambda state: AppView(state, page), expand=True))
+    page.add(
+        ft.ControlBuilder(global_state, lambda state: AppView(state, page), expand=True)
+    )
 
 
 ft.run(main)
