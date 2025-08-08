@@ -1,4 +1,5 @@
 import flet as ft
+import os
 from dataclasses import dataclass, field
 from typing import Literal, Dict, List, Tuple
 
@@ -14,7 +15,9 @@ class AppGlobalState:
     theme_icon: ft.Icons = ft.Icons.LIGHT_MODE
     quality: Literal["screen", "ebook", "printer"] = "screen"
     tab_selected: str = "Selected Files"
-    tab_options: List[str] = field(default_factory=lambda: ["Selected Files", "Compress Files"])
+    tab_options: List[str] = field(
+        default_factory=lambda: ["Selected Files", "Compress Files"]
+    )
 
     def toggle_theme(self, e: ft.ControlEvent | None = None):
         self.theme_mode = (
@@ -34,6 +37,14 @@ class AppGlobalState:
 
     def tab_changed(self, e: ft.Event[ft.Tabs]):
         self.tab_selected = self.tab_options[e.control.selected_index]
+
+    def select_file_remove(self, e: ft.Event[ft.IconButton], file: ft.FilePickerFile):
+        self.selected_files.remove(file)
+
+    def compressed_file_remove(self, e: ft.Event[ft.IconButton], file_path: str):
+        self.compressed_file_paths.pop(file_path)
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
 
 @dataclass

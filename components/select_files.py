@@ -6,7 +6,7 @@ import tempfile
 from state import AppGlobalState
 
 
-def SelectedFileItem(file: ft.FilePickerFile, idx: int) -> ft.SafeArea:
+def SelectedFileItem(file: ft.FilePickerFile, idx: int, global_state: AppGlobalState) -> ft.SafeArea:
     def calculate_size(size: int) -> str:
         if size < 1024:
             return f"{size} B"
@@ -43,8 +43,19 @@ def SelectedFileItem(file: ft.FilePickerFile, idx: int) -> ft.SafeArea:
                                 text_align=ft.TextAlign.RIGHT,
                                 no_wrap=True,
                             ),
+                            ft.IconButton(
+                                icon=ft.Icons.DELETE,
+                                bgcolor=ft.Colors.RED,
+                                on_click=lambda e: global_state.select_file_remove(e, file),
+                                icon_color=ft.Colors.WHITE,
+                                tooltip="Deselect",
+                                style=ft.ButtonStyle(
+                                    shape=ft.RoundedRectangleBorder(radius=1)
+                                ),
+                            )
                         ],
                         alignment=ft.MainAxisAlignment.END,
+                        spacing=10
                     ),
                 ],
                 expand=True,
@@ -54,7 +65,7 @@ def SelectedFileItem(file: ft.FilePickerFile, idx: int) -> ft.SafeArea:
     )
 
 
-def CompressedFileItem(file_path: str, origin_size, idx: int) -> ft.SafeArea:
+def CompressedFileItem(file_path: str, origin_size, idx: int, global_state: AppGlobalState) -> ft.SafeArea:
     file = Path(file_path)
     compressed_size = file.stat().st_size
 
@@ -118,6 +129,16 @@ def CompressedFileItem(file_path: str, origin_size, idx: int) -> ft.SafeArea:
                                 text_align=ft.TextAlign.RIGHT,
                                 no_wrap=True,
                             ),
+                                                        ft.IconButton(
+                                icon=ft.Icons.DELETE,
+                                bgcolor=ft.Colors.RED,
+                                on_click=lambda e: global_state.compressed_file_remove(e, file_path),
+                                icon_color=ft.Colors.WHITE,
+                                tooltip="Deselect",
+                                style=ft.ButtonStyle(
+                                    shape=ft.RoundedRectangleBorder(radius=1)
+                                ),
+                            )
                         ],
                         alignment=ft.MainAxisAlignment.END,
                     ),
@@ -145,7 +166,7 @@ def SelectFiles(global_state: AppGlobalState) -> ft.Container:
                         controls=[
                             ft.ListView(
                                 controls=[
-                                    SelectedFileItem(file, idx)
+                                    SelectedFileItem(file, idx, global_state)
                                     for idx, file in enumerate(
                                         global_state.selected_files
                                     )
@@ -266,7 +287,7 @@ def CompressedFiles(global_state: AppGlobalState, page: ft.Page) -> ft.Container
                         controls=[
                             ft.ListView(
                                 controls=[
-                                    CompressedFileItem(file_path, origin_size, idx)
+                                    CompressedFileItem(file_path, origin_size, idx, global_state)
                                     for idx, (file_path, origin_size) in enumerate(
                                         global_state.compressed_file_paths.items()
                                     )
