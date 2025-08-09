@@ -6,7 +6,9 @@ import tempfile
 from state import AppGlobalState
 
 
-def SelectedFileItem(file: ft.FilePickerFile, idx: int, global_state: AppGlobalState) -> ft.SafeArea:
+def SelectedFileItem(
+    file: ft.FilePickerFile, idx: int, global_state: AppGlobalState
+) -> ft.SafeArea:
     def calculate_size(size: int) -> str:
         if size < 1024:
             return f"{size} B"
@@ -23,7 +25,7 @@ def SelectedFileItem(file: ft.FilePickerFile, idx: int, global_state: AppGlobalS
                         f"{idx + 1}",
                         style=ft.TextStyle(size=16, weight=ft.FontWeight.BOLD),
                         width=30,
-                        text_align=ft.TextAlign.CENTER
+                        text_align=ft.TextAlign.CENTER,
                     ),
                     ft.Icon(
                         name=ft.Icons.PICTURE_AS_PDF,
@@ -46,16 +48,18 @@ def SelectedFileItem(file: ft.FilePickerFile, idx: int, global_state: AppGlobalS
                             ft.IconButton(
                                 icon=ft.Icons.DELETE,
                                 bgcolor=ft.Colors.RED,
-                                on_click=lambda e: global_state.select_file_remove(e, file),
+                                on_click=lambda e: global_state.select_file_remove(
+                                    e, file
+                                ),
                                 icon_color=ft.Colors.WHITE,
                                 tooltip="Deselect",
                                 style=ft.ButtonStyle(
                                     shape=ft.RoundedRectangleBorder(radius=1)
                                 ),
-                            )
+                            ),
                         ],
                         alignment=ft.MainAxisAlignment.END,
-                        spacing=10
+                        spacing=10,
                     ),
                 ],
                 expand=True,
@@ -65,7 +69,9 @@ def SelectedFileItem(file: ft.FilePickerFile, idx: int, global_state: AppGlobalS
     )
 
 
-def CompressedFileItem(file_path: str, origin_size, idx: int, global_state: AppGlobalState) -> ft.SafeArea:
+def CompressedFileItem(
+    file_path: str, origin_size, idx: int, global_state: AppGlobalState
+) -> ft.SafeArea:
     file = Path(file_path)
     compressed_size = file.stat().st_size
 
@@ -93,7 +99,7 @@ def CompressedFileItem(file_path: str, origin_size, idx: int, global_state: AppG
                         f"{idx + 1}",
                         style=ft.TextStyle(size=16, weight=ft.FontWeight.BOLD),
                         width=30,
-                        text_align=ft.TextAlign.CENTER
+                        text_align=ft.TextAlign.CENTER,
                     ),
                     ft.Icon(
                         name=ft.Icons.PICTURE_AS_PDF,
@@ -109,7 +115,7 @@ def CompressedFileItem(file_path: str, origin_size, idx: int, global_state: AppG
                         controls=[
                             ft.Container(
                                 content=ft.Text(
-                                    ratio,
+                                    ratio if not global_state.is_join else "",
                                     style=ft.TextStyle(
                                         size=14,
                                         color=ft.Colors.WHITE,
@@ -118,7 +124,13 @@ def CompressedFileItem(file_path: str, origin_size, idx: int, global_state: AppG
                                     ),
                                 ),
                                 bgcolor=(
-                                    ft.Colors.GREEN if "-" in ratio else ft.Colors.RED
+                                    None
+                                    if global_state.is_join
+                                    else (
+                                        ft.Colors.GREEN
+                                        if "-" in ratio
+                                        else ft.Colors.RED
+                                    )
                                 ),
                                 padding=ft.padding.symmetric(5, 5),
                                 border_radius=4,
@@ -129,16 +141,18 @@ def CompressedFileItem(file_path: str, origin_size, idx: int, global_state: AppG
                                 text_align=ft.TextAlign.RIGHT,
                                 no_wrap=True,
                             ),
-                                                        ft.IconButton(
+                            ft.IconButton(
                                 icon=ft.Icons.DELETE,
                                 bgcolor=ft.Colors.RED,
-                                on_click=lambda e: global_state.compressed_file_remove(e, file_path),
+                                on_click=lambda e: global_state.compressed_file_remove(
+                                    e, file_path
+                                ),
                                 icon_color=ft.Colors.WHITE,
                                 tooltip="Deselect",
                                 style=ft.ButtonStyle(
                                     shape=ft.RoundedRectangleBorder(radius=1)
                                 ),
-                            )
+                            ),
                         ],
                         alignment=ft.MainAxisAlignment.END,
                     ),
@@ -271,7 +285,11 @@ def CompressedFiles(global_state: AppGlobalState, page: ft.Page) -> ft.Container
                                         shape=ft.RoundedRectangleBorder(radius=5),
                                     ),
                                     width=200,
-                                    tooltip="Save File" if global_state.compressed_file_paths else "Please Compress",
+                                    tooltip=(
+                                        "Save File"
+                                        if global_state.compressed_file_paths
+                                        else "Please Compress"
+                                    ),
                                     disabled=(
                                         False
                                         if global_state.compressed_file_paths
@@ -280,7 +298,7 @@ def CompressedFiles(global_state: AppGlobalState, page: ft.Page) -> ft.Container
                                 ),
                             ],
                             alignment=ft.MainAxisAlignment.END,
-                            expand=True
+                            expand=True,
                         ),
                     ]
                 ),
@@ -289,7 +307,9 @@ def CompressedFiles(global_state: AppGlobalState, page: ft.Page) -> ft.Container
                         controls=[
                             ft.ListView(
                                 controls=[
-                                    CompressedFileItem(file_path, origin_size, idx, global_state)
+                                    CompressedFileItem(
+                                        file_path, origin_size, idx, global_state
+                                    )
                                     for idx, (file_path, origin_size) in enumerate(
                                         global_state.compressed_file_paths.items()
                                     )

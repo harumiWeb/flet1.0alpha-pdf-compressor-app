@@ -18,6 +18,7 @@ class AppGlobalState:
     tab_options: List[str] = field(
         default_factory=lambda: ["Selected Files", "Compress Files"]
     )
+    is_join: bool = field(default_factory=bool)
 
     def toggle_theme(self, e: ft.ControlEvent | None = None):
         self.theme_mode = (
@@ -48,6 +49,9 @@ class AppGlobalState:
         self.compressed_file_paths.pop(file_path)
         if os.path.exists(file_path):
             os.remove(file_path)
+
+    def handle_join_change(self, e: ft.Event[ft.Switch]):
+        self.is_join = e.control.value
 
 
 @dataclass
