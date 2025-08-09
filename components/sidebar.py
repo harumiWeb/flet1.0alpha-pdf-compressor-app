@@ -4,7 +4,8 @@ import flet as ft
 from state import AppGlobalState, SidebarState, SelectedFile
 from pathlib import Path
 import asyncio
-from pypdf import PdfReader
+from pypdf import PdfReader, PdfWriter
+import tempfile
 
 
 class QualityDropdown(ft.Dropdown):
@@ -116,28 +117,93 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
         output_filename = "joined.pdf"
         save_path = save_path_dir / output_filename
 
-        pdf_paths: list[str] = [str(file.file.path) for file in selected_files]
+        division_files: list[Path] = []
+        with tempfile.TemporaryDirectory() as dir:
+            for file in selected_files:
+                if file.is_division:
+                    idx = selected_files.index(file)
+                    true_idxs = [k for k, v in selected_files[idx].output_pages_setting.items() if v]
 
-        result = subprocess.run(
-            [
-                r".\assets\bin\gswin64c",
-                "-sDEVICE=pdfwrite",
-                "-dCompatibilityLevel=1.4",
-                f"-dPDFSETTINGS=/{global_state.quality}",
-                "-dNOPAUSE",
-                "-dQUIET",
-                "-dBATCH",
-                f"-sOutputFile={str(save_path)}",
-            ]
-            + pdf_paths
-        )
+                    writer = PdfWriter()
+                    for page_num in true_idxs:
+                        writer.add_page(file.pages[page_num])
 
-        global_state.compressed_file_paths[str(save_path)] = save_path.stat().st_size
+                    tmp_dir = Path(dir)
+                    file_path = Path(str(file.file.path))
+                    file_name = file_path.name
+                    output_path = tmp_dir / file_name
 
-        my_state.update_progress(
-            len(global_state.compressed_file_paths),
-            len(global_state.selected_files),
-        )
+                    with open(output_path, "wb") as f:
+                        writer.write(f)
+
+                    division_files.append(output_path.resolve())
+
+            if division_files == []:
+                pdf_paths = [str(file.file.path) for file in selected_files]
+            else:
+                pdf_paths = [str(path) for path in division_files]
+
+            result = subprocess.run(
+                [
+                    r".\assets\bin\gswin64c",
+                    "-sDEVICE=pdfwrite",
+                    "-dCompatibilityLevel=1.4",
+                    f"-dPDFSETTINGS=/{global_state.quality}",
+                    "-dNOPAUSE",
+                    "-dQUIET",
+                    "-dBATCH",
+                    f"-sOutputFile={str(save_path)}",
+                ]
+                + pdf_paths
+            )
+
+            global_state.compressed_file_paths[str(save_path)] = save_path.stat().st_size
+
+            my_state.update_progress(
+                len(global_state.compressed_file_paths),
+                len(global_state.selected_files),
+            )
+
+    def division_pdf(sf: SelectedFile, save_path_dir: Path):
+        idx = global_state.selected_files.index(sf)
+        true_idxs = [k for k, v in global_state.selected_files[idx].output_pages_setting.items() if v]
+
+        writer = PdfWriter()
+        for page_num in true_idxs:
+            writer.add_page(sf.pages[page_num])
+
+        with tempfile.TemporaryDirectory() as dir:
+            tmp_dir = Path(dir)
+            file_path = Path(str(sf.file.path))
+            file_name = file_path.name
+            output_path = tmp_dir / file_name
+
+            with open(output_path, "wb") as f:
+                writer.write(f)
+
+            save_path = save_path_dir / file_name
+            origin_size = file_path.stat().st_size
+
+            subprocess.run(
+                [
+                    r".\assets\bin\gswin64c",
+                    "-sDEVICE=pdfwrite",
+                    "-dCompatibilityLevel=1.4",
+                    f"-dPDFSETTINGS=/{global_state.quality}",
+                    "-dNOPAUSE",
+                    "-dQUIET",
+                    "-dBATCH",
+                    f"-sOutputFile={str(save_path)}",
+                    str(output_path),
+                ]
+            )
+
+            global_state.compressed_file_paths[str(save_path)] = origin_size
+
+            my_state.update_progress(
+                len(global_state.compressed_file_paths),
+                len(global_state.selected_files),
+            )
 
     async def handle_compress_click(e: ft.Event[ft.TextButton]):
         page.show_dialog(pd)
@@ -149,8 +215,12 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
             compress_and_join(global_state.selected_files, save_path_dir)
         else:
             for file in global_state.selected_files:
-                single_compress(file.file, save_path_dir)
-                await asyncio.sleep(0.001)
+                if file.is_division:
+                    division_pdf(file, save_path_dir)
+                    await asyncio.sleep(0.001)
+                else:
+                    single_compress(file.file, save_path_dir)
+                    await asyncio.sleep(0.001)
 
         page.pop_dialog()
         page.update()

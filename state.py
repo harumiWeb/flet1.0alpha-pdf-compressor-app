@@ -10,10 +10,11 @@ class SelectedFile:
     file: ft.FilePickerFile
     pages: List[PageObject]
     output_pages_setting: Dict[int, bool]
+    is_division: bool = field(default_factory=bool)
 
     def on_setting_edit(self, e: ft.Event[ft.TextButton], setting: Dict[int, bool]):
         self.output_pages_setting = setting.copy()
-        print(self.output_pages_setting)
+        self.is_division = any(self.output_pages_setting.values())
 
 
 @dataclass
