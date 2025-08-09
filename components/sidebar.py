@@ -86,12 +86,7 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
                     )
                 )
 
-    def single_compress(file: ft.FilePickerFile, save_path_dir: Path):
-        input_path = Path(file.path)  # type: ignore
-        output_filename = f"{input_path.stem}.pdf"
-        save_path = save_path_dir / output_filename
-        origin_size = input_path.stat().st_size
-
+    def run_ghostscript(input_paths: list[Path], output_path: Path):
         subprocess.run(
             [
                 r".\assets\bin\gswin64c",
@@ -101,70 +96,11 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
                 "-dNOPAUSE",
                 "-dQUIET",
                 "-dBATCH",
-                f"-sOutputFile={str(save_path)}",
-                str(input_path),
-            ]
+                f"-sOutputFile={str(output_path)}",
+            ] + [str(p) for p in input_paths]
         )
 
-        global_state.compressed_file_paths[str(save_path)] = origin_size
-
-        my_state.update_progress(
-            len(global_state.compressed_file_paths),
-            len(global_state.selected_files),
-        )
-
-    def compress_and_join(selected_files: list[SelectedFile], save_path_dir: Path):
-        output_filename = "joined.pdf"
-        save_path = save_path_dir / output_filename
-
-        division_files: list[Path] = []
-        with tempfile.TemporaryDirectory() as dir:
-            for file in selected_files:
-                if file.is_division:
-                    idx = selected_files.index(file)
-                    true_idxs = [k for k, v in selected_files[idx].output_pages_setting.items() if v]
-
-                    writer = PdfWriter()
-                    for page_num in true_idxs:
-                        writer.add_page(file.pages[page_num])
-
-                    tmp_dir = Path(dir)
-                    file_path = Path(str(file.file.path))
-                    file_name = file_path.name
-                    output_path = tmp_dir / file_name
-
-                    with open(output_path, "wb") as f:
-                        writer.write(f)
-
-                    division_files.append(output_path.resolve())
-
-            if division_files == []:
-                pdf_paths = [str(file.file.path) for file in selected_files]
-            else:
-                pdf_paths = [str(path) for path in division_files]
-
-            result = subprocess.run(
-                [
-                    r".\assets\bin\gswin64c",
-                    "-sDEVICE=pdfwrite",
-                    "-dCompatibilityLevel=1.4",
-                    f"-dPDFSETTINGS=/{global_state.quality}",
-                    "-dNOPAUSE",
-                    "-dQUIET",
-                    "-dBATCH",
-                    f"-sOutputFile={str(save_path)}",
-                ]
-                + pdf_paths
-            )
-
-            global_state.compressed_file_paths[str(save_path)] = save_path.stat().st_size
-
-            my_state.update_progress(
-                len(global_state.compressed_file_paths),
-                len(global_state.selected_files),
-            )
-
-    def division_pdf(sf: SelectedFile, save_path_dir: Path):
+    def extract_pages_to_temp_pdf(sf: SelectedFile, tmp_dir: Path) -> Path:
         idx = global_state.selected_files.index(sf)
         true_idxs = [k for k, v in global_state.selected_files[idx].output_pages_setting.items() if v]
 
@@ -172,38 +108,54 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
         for page_num in true_idxs:
             writer.add_page(sf.pages[page_num])
 
+        file_path = Path(str(sf.file.path))
+        output_path = tmp_dir / file_path.name
+
+        with open(output_path, "wb") as f:
+            writer.write(f)
+
+        return output_path
+    
+    def record_compression(save_path: Path, original_size: int):
+        global_state.compressed_file_paths[str(save_path)] = original_size
+        my_state.update_progress(
+            len(global_state.compressed_file_paths),
+            len(global_state.selected_files),
+        )
+
+    def single_compress(file: ft.FilePickerFile, save_path_dir: Path):
+        input_path = Path(file.path)  # type: ignore
+        output_path = save_path_dir / f"{input_path.stem}.pdf"
+        origin_size = input_path.stat().st_size
+
+        run_ghostscript([input_path], output_path)
+        record_compression(output_path, origin_size)
+
+    def division_pdf(sf: SelectedFile, save_path_dir: Path):
         with tempfile.TemporaryDirectory() as dir:
             tmp_dir = Path(dir)
-            file_path = Path(str(sf.file.path))
-            file_name = file_path.name
-            output_path = tmp_dir / file_name
+            temp_pdf = extract_pages_to_temp_pdf(sf, tmp_dir)
 
-            with open(output_path, "wb") as f:
-                writer.write(f)
+            save_path = save_path_dir / temp_pdf.name
+            origin_size = Path(str(sf.file.path)).stat().st_size
 
-            save_path = save_path_dir / file_name
-            origin_size = file_path.stat().st_size
+            run_ghostscript([temp_pdf], save_path)
+            record_compression(save_path, origin_size)
 
-            subprocess.run(
-                [
-                    r".\assets\bin\gswin64c",
-                    "-sDEVICE=pdfwrite",
-                    "-dCompatibilityLevel=1.4",
-                    f"-dPDFSETTINGS=/{global_state.quality}",
-                    "-dNOPAUSE",
-                    "-dQUIET",
-                    "-dBATCH",
-                    f"-sOutputFile={str(save_path)}",
-                    str(output_path),
-                ]
-            )
+    def compress_and_join(selected_files: list[SelectedFile], save_path_dir: Path):
+        output_path = save_path_dir / "joined.pdf"
+        temp_pdfs: list[Path] = []
 
-            global_state.compressed_file_paths[str(save_path)] = origin_size
+        with tempfile.TemporaryDirectory() as dir:
+            tmp_dir = Path(dir)
+            for sf in selected_files:
+                if sf.is_division:
+                    temp_pdf = extract_pages_to_temp_pdf(sf, tmp_dir)
+                    temp_pdfs.append(temp_pdf)
 
-            my_state.update_progress(
-                len(global_state.compressed_file_paths),
-                len(global_state.selected_files),
-            )
+            input_paths = temp_pdfs if temp_pdfs else [Path(str(sf.file.path)) for sf in selected_files]
+            run_ghostscript(input_paths, output_path)
+            record_compression(output_path, output_path.stat().st_size)
 
     async def handle_compress_click(e: ft.Event[ft.TextButton]):
         page.show_dialog(pd)
