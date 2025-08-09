@@ -2,12 +2,24 @@ import flet as ft
 import os
 from dataclasses import dataclass, field
 from typing import Literal, Dict, List, Tuple
+from pypdf import PageObject
+
+
+@dataclass
+class SelectedFile:
+    file: ft.FilePickerFile
+    pages: List[PageObject]
+    output_pages_setting: Dict[int, bool]
+
+    def on_setting_edit(self, e: ft.Event[ft.TextButton], setting: Dict[int, bool]):
+        self.output_pages_setting = setting.copy()
+        print(self.output_pages_setting)
 
 
 @dataclass
 class AppGlobalState:
     compressed_dir: str = "compressed"
-    selected_files: List[ft.FilePickerFile] = field(default_factory=list)
+    selected_files: List[SelectedFile] = field(default_factory=list)
     compressed_file_paths: Dict[str, int] = field(default_factory=dict[str, int])
     theme_mode: Literal[ft.ThemeMode.LIGHT] | Literal[ft.ThemeMode.DARK] = (
         ft.ThemeMode.LIGHT
@@ -21,6 +33,7 @@ class AppGlobalState:
     is_join: bool = field(default_factory=bool)
 
     def toggle_theme(self, e: ft.ControlEvent | None = None):
+
         self.theme_mode = (
             ft.ThemeMode.DARK
             if self.theme_mode == ft.ThemeMode.LIGHT
@@ -43,7 +56,7 @@ class AppGlobalState:
     def compressed_tab_move(self):
         self.tab_selected = self.tab_options[1]
 
-    def select_file_remove(self, e: ft.Event[ft.IconButton], file: ft.FilePickerFile):
+    def select_file_remove(self, e: ft.Event[ft.IconButton], file: SelectedFile):
         self.selected_files.remove(file)
 
     def compressed_file_remove(self, e: ft.Event[ft.IconButton], file_path: str):
@@ -53,6 +66,9 @@ class AppGlobalState:
 
     def handle_join_change(self, e: ft.Event[ft.Switch]):
         self.is_join = e.control.value
+
+    def select_pages(self, e: ft.Event[ft.TextButton], idx: int, pages: list[PageObject]):
+        self.selected_files[idx].pages = pages
 
 
 @dataclass

@@ -2,12 +2,48 @@ import flet as ft
 from pathlib import Path
 import shutil
 import tempfile
+from pypdf import PageObject
 
-from state import AppGlobalState
+from state import AppGlobalState, SelectedFile
+
+
+def PageSelectDialog(sf: SelectedFile):
+    __setting = sf.output_pages_setting.copy()
+
+    def handle_switch(e: ft.Event[ft.Switch], idx: int):
+        __setting[idx] = e.control.value
+
+    def handle_edit(e: ft.Event[ft.TextButton]):
+        sf.on_setting_edit(e, __setting)
+
+    dlg = ft.AlertDialog(
+        content=ft.Container(
+            ft.Column(
+                [
+                    ft.Text("Please select the pages to output."),
+                    ft.ListView(
+                        [
+                            ft.Row(
+                                [ft.Text(f"Page {int(idx) + 1}"), ft.Switch(value=is_out, on_change=lambda e ,idx=idx: handle_switch(e, idx))],
+                                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                            )
+                            for idx, is_out in sf.output_pages_setting.items()
+                        ]
+                    )
+                ]
+            ),
+            height=300
+        ),
+        actions=[
+            ft.TextButton("OK", on_click=lambda e: (handle_edit(e), e.page.pop_dialog())),  # type: ignore
+            ft.TextButton("Cancel", on_click=lambda e: e.page.pop_dialog()), # type: ignore
+        ],
+    )
+    return dlg
 
 
 def SelectedFileItem(
-    file: ft.FilePickerFile, idx: int, global_state: AppGlobalState
+    file: SelectedFile, idx: int, global_state: AppGlobalState
 ) -> ft.SafeArea:
     def calculate_size(size: int) -> str:
         if size < 1024:
@@ -33,14 +69,15 @@ def SelectedFileItem(
                         color=ft.Colors.RED,
                     ),
                     ft.Text(
-                        file.name,
+                        file.file.name,
                         style=ft.TextStyle(size=16, weight=ft.FontWeight.NORMAL),
                         expand=True,
                     ),
                     ft.Row(
                         controls=[
+                            ft.TextButton("Page Select", on_click=lambda e: e.page.show_dialog(PageSelectDialog(file))),  # type: ignore
                             ft.Text(
-                                f"{calculate_size(file.size)}",
+                                f"{calculate_size(file.file.size)}",
                                 style=ft.TextStyle(size=14, color=ft.Colors.GREY),
                                 text_align=ft.TextAlign.RIGHT,
                                 no_wrap=True,

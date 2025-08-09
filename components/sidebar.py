@@ -1,9 +1,10 @@
 import subprocess
 from typing import Any
 import flet as ft
-from state import AppGlobalState, SidebarState
+from state import AppGlobalState, SidebarState, SelectedFile
 from pathlib import Path
 import asyncio
+from pypdf import PdfReader
 
 
 class QualityDropdown(ft.Dropdown):
@@ -68,7 +69,21 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
             dialog_title="Select PDF Files",
         )
         if files:
-            global_state.selected_files.extend(files)
+            existing_paths = {sf.file.path for sf in global_state.selected_files}
+
+            for file in files:
+                if file.path in existing_paths:
+                    continue
+                reader = PdfReader(str(file.path))
+                global_state.selected_files.append(
+                    SelectedFile(
+                        file=file,
+                        pages=reader.pages,
+                        output_pages_setting={
+                            idx: True for idx, _ in enumerate(reader.pages)
+                        },
+                    )
+                )
 
     def single_compress(file: ft.FilePickerFile, save_path_dir: Path):
         input_path = Path(file.path)  # type: ignore
@@ -97,11 +112,11 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
             len(global_state.selected_files),
         )
 
-    def compress_and_join(selected_files: list[ft.FilePickerFile], save_path_dir: Path):
+    def compress_and_join(selected_files: list[SelectedFile], save_path_dir: Path):
         output_filename = "joined.pdf"
         save_path = save_path_dir / output_filename
 
-        pdf_paths: list[str] = [str(file.path) for file in selected_files]
+        pdf_paths: list[str] = [str(file.file.path) for file in selected_files]
 
         result = subprocess.run(
             [
@@ -113,7 +128,8 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
                 "-dQUIET",
                 "-dBATCH",
                 f"-sOutputFile={str(save_path)}",
-            ] + pdf_paths
+            ]
+            + pdf_paths
         )
 
         global_state.compressed_file_paths[str(save_path)] = save_path.stat().st_size
@@ -133,7 +149,7 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
             compress_and_join(global_state.selected_files, save_path_dir)
         else:
             for file in global_state.selected_files:
-                single_compress(file, save_path_dir)
+                single_compress(file.file, save_path_dir)
                 await asyncio.sleep(0.001)
 
         page.pop_dialog()
@@ -174,10 +190,16 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
                                 tooltip="Select PDF Files",
                             ),
                             QualityDropdown(global_state),
-                            ft.Row([
-                                ft.Text("Merge all PDFs"),
-                                ft.Switch(value=global_state.is_join, on_change=global_state.handle_join_change)
-                            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                            ft.Row(
+                                [
+                                    ft.Text("Merge all PDFs"),
+                                    ft.Switch(
+                                        value=global_state.is_join,
+                                        on_change=global_state.handle_join_change,
+                                    ),
+                                ],
+                                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                            ),
                             ft.TextButton(
                                 "COMPRESS",
                                 on_click=lambda e: (
