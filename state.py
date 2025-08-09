@@ -32,6 +32,7 @@ class AppGlobalState:
             else ft.Icons.LIGHT_MODE
         )
         e.page.theme_mode = self.theme_mode  # type: ignore
+        e.page.shared_preferences.set("theme", self.theme_mode) # type: ignore
 
     def set_quality(self, e: ft.Event[ft.Dropdown] | None):
         self.quality = e.control.value  # type: ignore

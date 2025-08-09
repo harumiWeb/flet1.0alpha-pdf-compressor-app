@@ -46,11 +46,9 @@ def AppView(state: AppGlobalState, page: ft.Page) -> ft.Container:
     )
 
 
-def main(page: ft.Page):
-    global_state = AppGlobalState()
-    # global_state.tabs =
-
-    page.theme_mode = ft.ThemeMode.LIGHT
+async def main(page: ft.Page):
+    theme = await page.shared_preferences.get_async("theme")
+    page.theme_mode = ft.ThemeMode.LIGHT if theme == "light" else ft.ThemeMode.DARK
     page.theme = ft.Theme(
         color_scheme_seed=ft.Colors.BLUE,
     )
@@ -59,6 +57,8 @@ def main(page: ft.Page):
     )
     page.title = APP_NAME
     page.padding = 0
+
+    global_state = AppGlobalState(theme_mode=page.theme_mode) # type: ignore
 
     for item in Path(global_state.compressed_dir).iterdir():
         if item.is_file():

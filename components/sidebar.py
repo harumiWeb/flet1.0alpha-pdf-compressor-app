@@ -142,7 +142,7 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
     def await_tab_change(e: ft.Event[ft.TextButton]):
         global_state.compressed_tab_move()
 
-    return ft.Container(
+    sidebar = ft.Container(
         content=ft.Column(
             [
                 ft.Container(
@@ -230,3 +230,4 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
         ),
         width=220,
     )
+    return sidebar
