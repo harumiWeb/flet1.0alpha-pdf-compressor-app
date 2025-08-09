@@ -278,7 +278,9 @@ def CompressedFiles(global_state: AppGlobalState, page: ft.Page) -> ft.Container
                                         else True
                                     ),
                                 ),
-                            ]
+                            ],
+                            alignment=ft.MainAxisAlignment.END,
+                            expand=True
                         ),
                     ]
                 ),

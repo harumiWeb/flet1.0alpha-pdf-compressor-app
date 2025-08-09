@@ -107,6 +107,10 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
             await asyncio.sleep(0.001)
 
         page.pop_dialog()
+        page.update()
+
+    def await_tab_change(e: ft.Event[ft.TextButton]):
+        global_state.compressed_tab_move()
 
     return ft.Container(
         content=ft.Column(
@@ -142,8 +146,11 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
                             QualityDropdown(global_state),
                             ft.TextButton(
                                 "COMPRESS",
-                                on_click=lambda e: asyncio.create_task(
-                                    handle_compress_click(e),
+                                on_click=lambda e: (
+                                    asyncio.create_task(
+                                        handle_compress_click(e),
+                                    ),
+                                    await_tab_change(e),
                                 ),
                                 icon=ft.Icons.COMPRESS,
                                 style=ft.ButtonStyle(

@@ -38,6 +38,9 @@ class AppGlobalState:
     def tab_changed(self, e: ft.Event[ft.Tabs]):
         self.tab_selected = self.tab_options[e.control.selected_index]
 
+    def compressed_tab_move(self):
+        self.tab_selected = self.tab_options[1]
+
     def select_file_remove(self, e: ft.Event[ft.IconButton], file: ft.FilePickerFile):
         self.selected_files.remove(file)
 
