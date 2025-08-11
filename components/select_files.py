@@ -2,7 +2,6 @@ import flet as ft
 from pathlib import Path
 import shutil
 import tempfile
-from pypdf import PageObject
 
 from state import AppGlobalState, SelectedFile
 
@@ -24,19 +23,27 @@ def PageSelectDialog(sf: SelectedFile):
                     ft.ListView(
                         [
                             ft.Row(
-                                [ft.Text(f"Page {int(idx) + 1}"), ft.Switch(value=is_out, on_change=lambda e ,idx=idx: handle_switch(e, idx))],
+                                [
+                                    ft.Text(f"Page {int(idx) + 1}"),
+                                    ft.Switch(
+                                        value=is_out,
+                                        on_change=lambda e, idx=idx: handle_switch(
+                                            e, idx
+                                        ),
+                                    ),
+                                ],
                                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                             )
                             for idx, is_out in sf.output_pages_setting.items()
                         ]
-                    )
+                    ),
                 ]
             ),
-            height=300
+            height=300,
         ),
         actions=[
             ft.TextButton("OK", on_click=lambda e: (handle_edit(e), e.page.pop_dialog())),  # type: ignore
-            ft.TextButton("Cancel", on_click=lambda e: e.page.pop_dialog()), # type: ignore
+            ft.TextButton("Cancel", on_click=lambda e: e.page.pop_dialog()),  # type: ignore
         ],
     )
     return dlg
@@ -101,7 +108,7 @@ def SelectedFileItem(
                 ],
                 expand=True,
             ),
-            padding=ft.padding.symmetric(horizontal=10, vertical=5),
+            padding=ft.Padding.symmetric(horizontal=10, vertical=5),
         )
     )
 
@@ -169,7 +176,7 @@ def CompressedFileItem(
                                         else ft.Colors.RED
                                     )
                                 ),
-                                padding=ft.padding.symmetric(5, 5),
+                                padding=ft.Padding.symmetric(vertical=5,horizontal=5),
                                 border_radius=4,
                             ),
                             ft.Text(
@@ -196,7 +203,7 @@ def CompressedFileItem(
                 ],
                 expand=True,
             ),
-            padding=ft.padding.symmetric(horizontal=10, vertical=5),
+            padding=ft.Padding.symmetric(horizontal=10, vertical=5),
         )
     )
 
@@ -369,6 +376,6 @@ def CompressedFiles(global_state: AppGlobalState, page: ft.Page) -> ft.Container
             spacing=10,
             expand=True,
         ),
-        padding=ft.padding.symmetric(horizontal=10, vertical=4),
+        padding=ft.Padding.symmetric(horizontal=10, vertical=4),
         expand=True,
     )

@@ -8,7 +8,7 @@ authors = [
     { name = "harumiWeb"}
 ]
 dependencies = [
-    "flet[all]>=0.70.0.dev0",
+    "flet>=0.70.0.dev0",
     "pypdf>=5.9.0",
 ]
 

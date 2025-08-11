@@ -51,8 +51,8 @@ class AppGlobalState:
     def set_quality(self, e: ft.Event[ft.Dropdown] | None):
         self.quality = e.control.value  # type: ignore
 
-    def tab_changed(self, e: ft.Event[ft.Tabs]):
-        self.tab_selected = self.tab_options[e.control.selected_index]
+    def tab_changed(self, e: ft.Event[ft.TabBar]):
+        self.tab_selected = self.tab_options[e.data] # type: ignore
 
     def compressed_tab_move(self):
         self.tab_selected = self.tab_options[1]

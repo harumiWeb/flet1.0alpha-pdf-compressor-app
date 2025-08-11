@@ -11,10 +11,10 @@ APP_NAME = "GhostFlet PDF Compressor"
 
 def AppView(state: AppGlobalState, page: ft.Page) -> ft.Container:
     tab = ft.Tabs(
-        scrollable=False,
         selected_index=state.tab_options.index(state.tab_selected),
         on_change=state.tab_changed,
-        tabs=[ft.Tab(label=tab) for tab in state.tab_options],
+        content=ft.TabBar(tabs=[ft.Tab(label=tab) for tab in state.tab_options], expand=True, tab_alignment=ft.TabAlignment.FILL, scrollable=False),
+        length=2,
     )
 
     return ft.Container(
@@ -59,7 +59,7 @@ async def main(page: ft.Page):
     page.title = APP_NAME
     page.padding = 0
 
-    global_state = AppGlobalState(theme_mode=page.theme_mode) # type: ignore
+    global_state = AppGlobalState(theme_mode=page.theme_mode)  # type: ignore
 
     if not os.path.exists("compressed"):
         os.mkdir("compressed")
