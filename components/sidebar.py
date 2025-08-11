@@ -243,7 +243,7 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
                                         else ft.Colors.GREY_300
                                     ),
                                     shape=ft.RoundedRectangleBorder(radius=5),
-                                    padding=ft.padding.symmetric(
+                                    padding=ft.Padding.symmetric(
                                         horizontal=20, vertical=18
                                     ),
                                 ),
@@ -266,7 +266,7 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
             spacing=10,
         ),
         alignment=ft.Alignment.TOP_CENTER,
-        padding=ft.padding.all(10),
+        padding=ft.Padding.all(10),
         bgcolor=(
             ft.Colors.BLUE_GREY_100
             if global_state.theme_mode == ft.ThemeMode.LIGHT

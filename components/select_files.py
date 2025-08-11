@@ -240,7 +240,7 @@ def SelectFiles(global_state: AppGlobalState) -> ft.Container:
             spacing=10,
             expand=True,
         ),
-        padding=ft.padding.symmetric(horizontal=10, vertical=4),
+        padding=ft.Padding.symmetric(horizontal=10, vertical=4),
         expand=True,
     )
 

@@ -1,11 +1,12 @@
 import flet as ft
 import shutil
+import os
 from pathlib import Path
 
 from state import AppGlobalState
 from components import Sidebar, SelectFiles, CompressedFiles
 
-APP_NAME = "Python PDF Compressor"
+APP_NAME = "GhostFlet PDF Compressor"
 
 
 def AppView(state: AppGlobalState, page: ft.Page) -> ft.Container:
@@ -59,6 +60,9 @@ async def main(page: ft.Page):
     page.padding = 0
 
     global_state = AppGlobalState(theme_mode=page.theme_mode) # type: ignore
+
+    if not os.path.exists("compressed"):
+        os.mkdir("compressed")
 
     for item in Path(global_state.compressed_dir).iterdir():
         if item.is_file():
