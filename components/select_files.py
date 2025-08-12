@@ -2,8 +2,29 @@ import flet as ft
 from pathlib import Path
 import shutil
 import tempfile
+import os
 
 from state import AppGlobalState, SelectedFile
+
+SAVE_ZIP_BUTTON_THEME = ft.Theme(
+    text_button_theme=ft.TextButtonTheme(
+        style=ft.ButtonStyle(
+            color=ft.Colors.WHITE,
+            bgcolor=(ft.Colors.GREEN_ACCENT_400),
+            shape=ft.RoundedRectangleBorder(radius=5),
+        )
+    )
+)
+
+REMOVE_BUTTON_THEME = ft.Theme(
+    text_button_theme=ft.TextButtonTheme(
+        style=ft.ButtonStyle(
+            color=ft.Colors.WHITE,
+            bgcolor=(ft.Colors.RED_ACCENT_400),
+            shape=ft.RoundedRectangleBorder(radius=5),
+        )
+    )
+)
 
 
 def PageSelectDialog(sf: SelectedFile):
@@ -60,6 +81,9 @@ def SelectedFileItem(
         else:
             return f"{size / (1024 * 1024):.1f} MB"
 
+    async def handle_file_click(e: ft.Event[ft.TextButton]):
+        os.startfile(str(file.file.path))
+
     return ft.SafeArea(
         content=ft.Container(
             content=ft.Row(
@@ -75,9 +99,10 @@ def SelectedFileItem(
                         size=24,
                         color=ft.Colors.RED,
                     ),
-                    ft.Text(
-                        file.file.name,
-                        style=ft.TextStyle(size=16, weight=ft.FontWeight.NORMAL),
+                    ft.Row(
+                        [
+                            ft.TextButton(file.file.name, on_click=handle_file_click),
+                        ],
                         expand=True,
                     ),
                     ft.Row(
@@ -119,6 +144,9 @@ def CompressedFileItem(
     file = Path(file_path)
     compressed_size = file.stat().st_size
 
+    async def handle_file_click(e: ft.Event[ft.TextButton]):
+        os.startfile(file)
+
     def calculate_size(size: int) -> str:
         if size < 1024:
             return f"{size} B"
@@ -150,9 +178,10 @@ def CompressedFileItem(
                         size=24,
                         color=ft.Colors.RED,
                     ),
-                    ft.Text(
-                        file.name,
-                        style=ft.TextStyle(size=16, weight=ft.FontWeight.NORMAL),
+                    ft.Row(
+                        [
+                            ft.TextButton(file.name, on_click=handle_file_click),
+                        ],
                         expand=True,
                     ),
                     ft.Row(
@@ -176,7 +205,7 @@ def CompressedFileItem(
                                         else ft.Colors.RED
                                     )
                                 ),
-                                padding=ft.Padding.symmetric(vertical=5,horizontal=5),
+                                padding=ft.Padding.symmetric(vertical=5, horizontal=5),
                                 border_radius=4,
                             ),
                             ft.Text(
@@ -212,12 +241,37 @@ def SelectFiles(global_state: AppGlobalState) -> ft.Container:
     return ft.Container(
         content=ft.Column(
             [
-                ft.Text(
-                    "Selected Files",
-                    style=ft.TextStyle(
-                        size=20,
-                        weight=ft.FontWeight.BOLD,
-                    ),
+                ft.Row(
+                    [
+                        ft.Text(
+                            "Selected Files",
+                            style=ft.TextStyle(
+                                size=20,
+                                weight=ft.FontWeight.BOLD,
+                            ),
+                        ),
+                        ft.Container(
+                            ft.TextButton(
+                                "Deselect All",
+                                on_click=global_state.deselect_all,
+                                icon=ft.Icons.DELETE_FOREVER,
+                                width=200,
+                                tooltip=(
+                                    "Deselect All Selected Files"
+                                    if global_state.selected_files
+                                    else "Please Select"
+                                ),
+                                disabled=(
+                                    False
+                                    if global_state.selected_files
+                                    else True
+                                ),
+                            ),
+                            theme=REMOVE_BUTTON_THEME,
+                            dark_theme=REMOVE_BUTTON_THEME,
+                        ),
+                    ],
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                 ),
                 ft.Container(
                     content=ft.Column(
@@ -315,30 +369,45 @@ def CompressedFiles(global_state: AppGlobalState, page: ft.Page) -> ft.Container
                         ),
                         ft.Row(
                             controls=[
-                                ft.TextButton(
-                                    "Save Zip",
-                                    on_click=save_file,
-                                    icon=ft.Icons.SAVE_ALT_OUTLINED,
-                                    style=ft.ButtonStyle(
-                                        color=ft.Colors.WHITE,
-                                        bgcolor=(
-                                            ft.Colors.GREEN_ACCENT_400
+                                ft.Container(
+                                    ft.TextButton(
+                                        "Remove All",
+                                        on_click=global_state.compressed_file_remove_all,
+                                        icon=ft.Icons.DELETE_FOREVER,
+                                        width=200,
+                                        tooltip=(
+                                            "Remove All Compressed Files"
                                             if global_state.compressed_file_paths
-                                            else ft.Colors.GREY_300
+                                            else "Please Compress"
                                         ),
-                                        shape=ft.RoundedRectangleBorder(radius=5),
+                                        disabled=(
+                                            False
+                                            if global_state.compressed_file_paths
+                                            else True
+                                        ),
                                     ),
-                                    width=200,
-                                    tooltip=(
-                                        "Save File"
-                                        if global_state.compressed_file_paths
-                                        else "Please Compress"
+                                    theme=REMOVE_BUTTON_THEME,
+                                    dark_theme=REMOVE_BUTTON_THEME,
+                                ),
+                                ft.Container(
+                                    ft.TextButton(
+                                        "Save Zip",
+                                        on_click=save_file,
+                                        icon=ft.Icons.SAVE_ALT_OUTLINED,
+                                        width=200,
+                                        tooltip=(
+                                            "Save File"
+                                            if global_state.compressed_file_paths
+                                            else "Please Compress"
+                                        ),
+                                        disabled=(
+                                            False
+                                            if global_state.compressed_file_paths
+                                            else True
+                                        ),
                                     ),
-                                    disabled=(
-                                        False
-                                        if global_state.compressed_file_paths
-                                        else True
-                                    ),
+                                    theme=SAVE_ZIP_BUTTON_THEME,
+                                    dark_theme=SAVE_ZIP_BUTTON_THEME,
                                 ),
                             ],
                             alignment=ft.MainAxisAlignment.END,

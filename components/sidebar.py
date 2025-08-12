@@ -7,6 +7,28 @@ import asyncio
 from pypdf import PdfReader, PdfWriter
 import tempfile
 
+SELECT_FILES_BUTTON_THEME = ft.Theme(
+    text_button_theme=ft.TextButtonTheme(
+        style=ft.ButtonStyle(
+            color=ft.Colors.WHITE,
+            bgcolor=ft.Colors.BLUE_ACCENT_700,
+            shape=ft.RoundedRectangleBorder(radius=5),
+        )
+    )
+)
+
+COMPRESS_BUTTON_THEME = ft.Theme(
+    text_button_theme=ft.TextButtonTheme(
+        style=ft.ButtonStyle(
+            color=(ft.Colors.WHITE),
+            bgcolor=(ft.Colors.GREEN_ACCENT_700),
+            shape=ft.RoundedRectangleBorder(radius=5),
+            padding=ft.Padding.symmetric(horizontal=20, vertical=18),
+        )
+    ),
+    disabled_color=ft.Colors.GREY
+)
+
 
 class QualityDropdown(ft.Dropdown):
     def __init__(self, global_state: AppGlobalState):
@@ -63,7 +85,7 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
 
     pd = ProcessingDialog(my_state.pb)
 
-    async def open_file_picker(e: ft.ControlEvent | None = None):
+    async def open_file_picker(e: ft.Event[ft.TextButton] | None = None):
         files = await file_picker.pick_files_async(
             allow_multiple=True,
             allowed_extensions=["pdf"],
@@ -97,12 +119,18 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
                 "-dQUIET",
                 "-dBATCH",
                 f"-sOutputFile={str(output_path)}",
-            ] + [str(p) for p in input_paths]
+            ]
+            + [str(p) for p in input_paths],
+            creationflags=subprocess.CREATE_NO_WINDOW,
         )
 
     def extract_pages_to_temp_pdf(sf: SelectedFile, tmp_dir: Path) -> Path:
         idx = global_state.selected_files.index(sf)
-        true_idxs = [k for k, v in global_state.selected_files[idx].output_pages_setting.items() if v]
+        true_idxs = [
+            k
+            for k, v in global_state.selected_files[idx].output_pages_setting.items()
+            if v
+        ]
 
         writer = PdfWriter()
         for page_num in true_idxs:
@@ -115,7 +143,7 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
             writer.write(f)
 
         return output_path
-    
+
     def record_compression(save_path: Path, original_size: int):
         global_state.compressed_file_paths[str(save_path)] = original_size
         my_state.update_progress(
@@ -153,7 +181,11 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
                     temp_pdf = extract_pages_to_temp_pdf(sf, tmp_dir)
                     temp_pdfs.append(temp_pdf)
 
-            input_paths = temp_pdfs if temp_pdfs else [Path(str(sf.file.path)) for sf in selected_files]
+            input_paths = (
+                temp_pdfs
+                if temp_pdfs
+                else [Path(str(sf.file.path)) for sf in selected_files]
+            )
             run_ghostscript(input_paths, output_path)
             record_compression(output_path, output_path.stat().st_size)
 
@@ -199,17 +231,16 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
                 ft.Container(
                     content=ft.Column(
                         controls=[
-                            ft.TextButton(
-                                "Select Files",
-                                on_click=open_file_picker,
-                                icon=ft.Icons.FOLDER_OPEN,
-                                style=ft.ButtonStyle(
-                                    color=ft.Colors.WHITE,
-                                    bgcolor=ft.Colors.BLUE_ACCENT_700,
-                                    shape=ft.RoundedRectangleBorder(radius=5),
+                            ft.Container(
+                                ft.TextButton(
+                                    "Select Files",
+                                    on_click=open_file_picker,
+                                    icon=ft.Icons.FOLDER_OPEN,
+                                    width=200,
+                                    tooltip="Select PDF Files",
                                 ),
-                                width=200,
-                                tooltip="Select PDF Files",
+                                theme=SELECT_FILES_BUTTON_THEME,
+                                dark_theme=SELECT_FILES_BUTTON_THEME,
                             ),
                             QualityDropdown(global_state),
                             ft.Row(
@@ -222,38 +253,26 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
                                 ],
                                 alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                             ),
-                            ft.TextButton(
-                                "COMPRESS",
-                                on_click=lambda e: (
-                                    asyncio.create_task(
-                                        handle_compress_click(e),
+                            ft.Container(
+                                ft.TextButton(
+                                    "COMPRESS",
+                                    on_click=lambda e: (
+                                        asyncio.create_task(
+                                            handle_compress_click(e),
+                                        ),
+                                        await_tab_change(e),
                                     ),
-                                    await_tab_change(e),
-                                ),
-                                icon=ft.Icons.COMPRESS,
-                                style=ft.ButtonStyle(
-                                    color=(
-                                        ft.Colors.WHITE
+                                    icon=ft.Icons.COMPRESS,
+                                    tooltip=(
+                                        "Start Compression"
                                         if global_state.selected_files
-                                        else ft.Colors.GREY
+                                        else "No files selected"
                                     ),
-                                    bgcolor=(
-                                        ft.Colors.GREEN_ACCENT_700
-                                        if global_state.selected_files
-                                        else ft.Colors.GREY_300
-                                    ),
-                                    shape=ft.RoundedRectangleBorder(radius=5),
-                                    padding=ft.Padding.symmetric(
-                                        horizontal=20, vertical=18
-                                    ),
+                                    width=200,
+                                    disabled=not global_state.selected_files,
                                 ),
-                                tooltip=(
-                                    "Start Compression"
-                                    if global_state.selected_files
-                                    else "No files selected"
-                                ),
-                                width=200,
-                                disabled=not global_state.selected_files,
+                                theme=COMPRESS_BUTTON_THEME,
+                                dark_theme=COMPRESS_BUTTON_THEME,
                             ),
                         ],
                         spacing=20,

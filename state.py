@@ -46,13 +46,13 @@ class AppGlobalState:
             else ft.Icons.LIGHT_MODE
         )
         e.page.theme_mode = self.theme_mode  # type: ignore
-        e.page.shared_preferences.set("theme", self.theme_mode) # type: ignore
+        e.page.shared_preferences.set("theme", self.theme_mode)  # type: ignore
 
     def set_quality(self, e: ft.Event[ft.Dropdown] | None):
         self.quality = e.control.value  # type: ignore
 
     def tab_changed(self, e: ft.Event[ft.TabBar]):
-        self.tab_selected = self.tab_options[e.data] # type: ignore
+        self.tab_selected = self.tab_options[e.data]  # type: ignore
 
     def compressed_tab_move(self):
         self.tab_selected = self.tab_options[1]
@@ -60,15 +60,26 @@ class AppGlobalState:
     def select_file_remove(self, e: ft.Event[ft.IconButton], file: SelectedFile):
         self.selected_files.remove(file)
 
+    def deselect_all(self, e: ft.Event[ft.TextButton]):
+        self.selected_files = list()
+
     def compressed_file_remove(self, e: ft.Event[ft.IconButton], file_path: str):
         self.compressed_file_paths.pop(file_path)
         if os.path.exists(file_path):
             os.remove(file_path)
 
+    def compressed_file_remove_all(self, e: ft.Event[ft.TextButton]):
+        for file_path in self.compressed_file_paths:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        self.compressed_file_paths = dict()
+
     def handle_join_change(self, e: ft.Event[ft.Switch]):
         self.is_join = e.control.value
 
-    def select_pages(self, e: ft.Event[ft.TextButton], idx: int, pages: list[PageObject]):
+    def select_pages(
+        self, e: ft.Event[ft.TextButton], idx: int, pages: list[PageObject]
+    ):
         self.selected_files[idx].pages = pages
 
 
