@@ -6,6 +6,7 @@ from pathlib import Path
 import asyncio
 from pypdf import PdfReader, PdfWriter
 import tempfile
+import webbrowser
 
 SELECT_FILES_BUTTON_THEME = ft.Theme(
     text_button_theme=ft.TextButtonTheme(
@@ -26,7 +27,7 @@ COMPRESS_BUTTON_THEME = ft.Theme(
             padding=ft.Padding.symmetric(horizontal=20, vertical=18),
         )
     ),
-    disabled_color=ft.Colors.GREY
+    disabled_color=ft.Colors.GREY,
 )
 
 
@@ -212,6 +213,22 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
     def await_tab_change(e: ft.Event[ft.TextButton]):
         global_state.compressed_tab_move()
 
+    def preview_license(e: ft.Event[ft.TextButton]):
+        license_path = Path("assets/LICENSE.md")
+        try:
+            license_text = license_path.read_text(encoding="utf-8")
+        except Exception as ex:
+            license_text = f"ライセンス情報の読み込みに失敗しました。\n\n{ex}"
+
+        dlg = ft.AlertDialog(
+            content=ft.Container(
+                ft.Column([ft.Markdown(license_text)], scroll=ft.ScrollMode.AUTO)
+            ),
+            modal=True,
+            actions=[ft.TextButton("OK", on_click=lambda e: page.pop_dialog())],
+        )
+        page.show_dialog(dlg)
+
     sidebar = ft.Container(
         content=ft.Column(
             [
@@ -273,6 +290,38 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
                                 ),
                                 theme=COMPRESS_BUTTON_THEME,
                                 dark_theme=COMPRESS_BUTTON_THEME,
+                            ),
+                            ft.Column(
+                                [
+                                    ft.Container(
+                                        ft.Row(
+                                            [
+                                                ft.TextButton(
+                                                    "GitHub",
+                                                    on_click=lambda e: webbrowser.open_new(
+                                                        "https://github.com/harumiWeb/flet1.0alpha-pdf-compressor-app"
+                                                    ),
+                                                    icon=ft.Image(
+                                                        src=(
+                                                            "assets/github-mark-white.png"
+                                                            if page.theme_mode
+                                                            == ft.ThemeMode.DARK
+                                                            else "assets/github-mark.png"
+                                                        ),
+                                                        height=20,
+                                                    ),
+                                                )
+                                            ]
+                                        )
+                                    ),
+                                    ft.TextButton(
+                                        "LICENSE",
+                                        on_click=preview_license,
+                                        icon=ft.Icons.ATTACH_FILE,
+                                    ),
+                                ],
+                                alignment=ft.MainAxisAlignment.END,
+                                expand=True,
                             ),
                         ],
                         spacing=20,
