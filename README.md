@@ -1,3 +1,3 @@
 ## LICENSE
 
-AGPL-3.0
+AGPL-3.0 license
