@@ -32,7 +32,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    version='C:\\temp\\543cce4e-e554-4582-ba9a-9f905008cca4',
+    version='C:\\temp\\6faea902-7b08-4c80-9dad-258c168f6ce3',
     icon=['assets\\icon.png'],
 )
 coll = COLLECT(
