@@ -24,9 +24,18 @@ path = "."
 [tool.uv.sources]
 pyinstaller = { path = "../clean_pyinstaller/pyinstaller" }
 
+[tool.taskipy.tasks]
+build = "python ./dev/build.py"
+bump-patch = "python ./dev/bump_version.py patch"
+bump-minor = "python ./dev/bump_version.py minor"
+bump-major = "python ./dev/bump_version.py major"
+make = '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" ".\GhostFletInstaller.iss"'
+
 [dependency-groups]
 dev = [
     "pillow>=11.3.0",
     "pip>=25.2",
     "pyinstaller",
+    "taskipy>=1.14.1",
+    "tomlkit>=0.13.3",
 ]
