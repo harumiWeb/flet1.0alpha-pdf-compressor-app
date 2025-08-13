@@ -120,7 +120,7 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
     def run_ghostscript(input_paths: list[Path], output_path: Path):
         subprocess.run(
             [
-                resource_path(r".\assets\bin\gswin64c"),
+                resource_path(r".\assets\bin\gswin64c") if hasattr(sys, "_MEIPASS") else "gswin64.exe",
                 "-sDEVICE=pdfwrite",
                 "-dCompatibilityLevel=1.4",
                 f"-dPDFSETTINGS=/{global_state.quality}",

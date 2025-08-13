@@ -1,6 +1,6 @@
 [project]
 name = "pdf-comp"
-version = "0.1.0"
+version = "0.1.2"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -9,8 +9,6 @@ authors = [
 ]
 dependencies = [
     "flet>=0.70.0.dev0",
-    "pillow>=11.3.0",
-    "pyinstaller>=6.15.0",
     "pypdf>=5.9.0",
 ]
 
@@ -22,3 +20,13 @@ copyright = "Copyright (C) 2025 by harumiWeb"
 
 [tool.flet.app]
 path = "."
+
+[tool.uv.sources]
+pyinstaller = { path = "../clean_pyinstaller/pyinstaller" }
+
+[dependency-groups]
+dev = [
+    "pillow>=11.3.0",
+    "pip>=25.2",
+    "pyinstaller",
+]
