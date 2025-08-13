@@ -3,6 +3,7 @@ from pathlib import Path
 import shutil
 import tempfile
 import os
+import fitz
 
 from state import AppGlobalState, SelectedFile
 
@@ -29,6 +30,7 @@ REMOVE_BUTTON_THEME = ft.Theme(
 
 def PageSelectDialog(sf: SelectedFile):
     __setting = sf.output_pages_setting.copy()
+    doc = fitz.open(sf.file.path)
 
     def handle_switch(e: ft.Event[ft.Switch], idx: int):
         __setting[idx] = e.control.value
@@ -36,31 +38,50 @@ def PageSelectDialog(sf: SelectedFile):
     def handle_edit(e: ft.Event[ft.TextButton]):
         sf.on_setting_edit(e, __setting)
 
+    def page_to_img(page_idx: int):
+        page = doc.load_page(page_idx)
+        pix = page.get_pixmap()  # type: ignore
+        save_path = f"tmp/{sf.file.name}_{page_idx}.png"
+        pix.save(save_path)
+        return save_path
+
     dlg = ft.AlertDialog(
+        title="Please select the pages to output.",
         content=ft.Container(
             ft.Column(
                 [
-                    ft.Text("Please select the pages to output."),
-                    ft.ListView(
+                    ft.Column(
                         [
-                            ft.Row(
+                            ft.ListView(
                                 [
-                                    ft.Text(f"Page {int(idx) + 1}"),
-                                    ft.Switch(
-                                        value=is_out,
-                                        on_change=lambda e, idx=idx: handle_switch(
-                                            e, idx
-                                        ),
-                                    ),
+                                    ft.Row(
+                                        [
+                                            ft.Image(src=page_to_img(idx), expand=True),
+                                            ft.Row(
+                                                [
+                                                    ft.Text(f"Page {int(idx) + 1}"),
+                                                    ft.Switch(
+                                                        value=is_out,
+                                                        on_change=lambda e, idx=idx: handle_switch(
+                                                            e, idx
+                                                        ),
+                                                    ),
+                                                ],
+                                                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                                            ),
+                                        ]
+                                    )
+                                    for idx, is_out in sf.output_pages_setting.items()
                                 ],
-                                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                            )
-                            for idx, is_out in sf.output_pages_setting.items()
-                        ]
+                                spacing=5,
+                            ),
+                        ],
                     ),
-                ]
+                ],
+                scroll=ft.ScrollMode.AUTO
             ),
-            height=300,
+            width=600
+            # height=300,
         ),
         actions=[
             ft.TextButton("OK", on_click=lambda e: (handle_edit(e), e.page.pop_dialog())),  # type: ignore
@@ -262,16 +283,14 @@ def SelectFiles(global_state: AppGlobalState) -> ft.Container:
                                     else "Please Select"
                                 ),
                                 disabled=(
-                                    False
-                                    if global_state.selected_files
-                                    else True
+                                    False if global_state.selected_files else True
                                 ),
                             ),
                             theme=REMOVE_BUTTON_THEME,
                             dark_theme=REMOVE_BUTTON_THEME,
                         ),
                     ],
-                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                 ),
                 ft.Container(
                     content=ft.Column(

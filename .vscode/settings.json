@@ -2,12 +2,14 @@
   "cSpell.words": [
     "appbar",
     "creationflags",
+    "fitz",
     "flet",
     "ftwv",
     "gswin",
     "MEIPASS",
     "pdfs",
     "pdfwrite",
+    "pixmap",
     "startfile"
   ],
   "C_Cpp_Runner.cCompilerPath": "gcc",

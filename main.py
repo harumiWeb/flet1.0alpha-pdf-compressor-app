@@ -8,6 +8,14 @@ from components import Sidebar, SelectFiles, CompressedFiles
 
 APP_NAME = "GhostFlet PDF Compressor"
 
+def setup_dir(dir_path: str):
+    if not os.path.exists(dir_path):
+        os.mkdir(dir_path)
+    for item in Path(dir_path).iterdir():
+        if item.is_file():
+            item.unlink()
+        elif item.is_dir():
+            shutil.rmtree(item)
 
 def AppView(state: AppGlobalState, page: ft.Page) -> ft.Container:
     tab = ft.Tabs(
@@ -68,14 +76,8 @@ async def main(page: ft.Page):
 
     global_state = AppGlobalState(theme_mode=page.theme_mode)  # type: ignore
 
-    if not os.path.exists("compressed"):
-        os.mkdir("compressed")
-
-    for item in Path(global_state.compressed_dir).iterdir():
-        if item.is_file():
-            item.unlink()
-        elif item.is_dir():
-            shutil.rmtree(item)
+    setup_dir(global_state.compressed_dir)
+    setup_dir("tmp")
 
     page.add(
         ft.ControlBuilder(global_state, lambda state: AppView(state, page), expand=True)

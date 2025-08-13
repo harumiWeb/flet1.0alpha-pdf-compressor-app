@@ -9,6 +9,7 @@ authors = [
 ]
 dependencies = [
     "flet>=0.70.0.dev0",
+    "pymupdf>=1.26.3",
     "pypdf>=5.9.0",
 ]
 
