@@ -1,6 +1,6 @@
 [project]
 name = "pdf-comp"
-version = "0.1.2"
+version = "0.1.3"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -30,7 +30,7 @@ build = "python ./dev/build.py"
 bump-patch = "python ./dev/bump_version.py patch"
 bump-minor = "python ./dev/bump_version.py minor"
 bump-major = "python ./dev/bump_version.py major"
-make = '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" ".\GhostFletInstaller.iss"'
+make = '"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" ".\GhostFletInstaller.iss"'
 
 [dependency-groups]
 dev = [

@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "GhostFlet PDF"
-#define MyAppVersion "0.1.2"
+#define MyAppVersion "0.1.3"
 #define MyAppPublisher "harumiWeb"
 #define MyAppURL "https://github.com/harumiWeb/flet1.0alpha-pdf-compressor-apphttps://github.com/harumiWeb/flet1.0alpha-pdf-compressor-app"
 #define MyAppExeName "GhostFlet PDF.exe"
