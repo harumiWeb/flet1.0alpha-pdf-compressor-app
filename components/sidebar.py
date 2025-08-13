@@ -7,6 +7,8 @@ import asyncio
 from pypdf import PdfReader, PdfWriter
 import tempfile
 import webbrowser
+import sys
+import os
 
 SELECT_FILES_BUTTON_THEME = ft.Theme(
     text_button_theme=ft.TextButtonTheme(
@@ -29,6 +31,12 @@ COMPRESS_BUTTON_THEME = ft.Theme(
     ),
     disabled_color=ft.Colors.GREY,
 )
+
+
+def resource_path(relative_path):
+    if hasattr(sys, "_MEIPASS"):
+        return sys._MEIPASS + "\\" + relative_path # type: ignore
+    return os.path.join(os.path.abspath("."), relative_path)
 
 
 class QualityDropdown(ft.Dropdown):
@@ -112,7 +120,7 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
     def run_ghostscript(input_paths: list[Path], output_path: Path):
         subprocess.run(
             [
-                r".\assets\bin\gswin64c",
+                resource_path(r".\assets\bin\gswin64c"),
                 "-sDEVICE=pdfwrite",
                 "-dCompatibilityLevel=1.4",
                 f"-dPDFSETTINGS=/{global_state.quality}",
@@ -214,7 +222,7 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
         global_state.compressed_tab_move()
 
     def preview_license(e: ft.Event[ft.TextButton]):
-        license_path = Path("assets/LICENSE.md")
+        license_path = Path(resource_path("assets/LICENSE.md"))
         try:
             license_text = license_path.read_text(encoding="utf-8")
         except Exception as ex:
@@ -303,10 +311,10 @@ def Sidebar(global_state: AppGlobalState, page: ft.Page) -> ft.Container:
                                                     ),
                                                     icon=ft.Image(
                                                         src=(
-                                                            "assets/github-mark-white.png"
+                                                            resource_path("assets/github-mark-white.png")
                                                             if page.theme_mode
                                                             == ft.ThemeMode.DARK
-                                                            else "assets/github-mark.png"
+                                                            else resource_path("assets/github-mark.png")
                                                         ),
                                                         height=20,
                                                     ),

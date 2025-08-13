@@ -9,6 +9,8 @@ authors = [
 ]
 dependencies = [
     "flet>=0.70.0.dev0",
+    "pillow>=11.3.0",
+    "pyinstaller>=6.15.0",
     "pypdf>=5.9.0",
 ]
 
