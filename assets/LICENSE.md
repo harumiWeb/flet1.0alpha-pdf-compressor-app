@@ -1,17 +1,15 @@
 # GNU Affero General Public License v3.0
 
-このソフトウェアは，内部で Ghostscript をバンドルしており，GNU Affero General Public License Version 3（AGPL-3.0）の下で公開されています。  
-以下，このリポジトリに含まれるすべてのコードとバイナリは AGPL-3.0 の条件に従って利用および再配布が許可されます。
+このソフトウェアは，内部で Ghostscript と PyMuPDF をバンドルしており，GNU Affero General Public License Version 3（AGPL-3.0）の下で公開されています。  
+以下，このアプリケーションに含まれるすべてのコードとバイナリは AGPL-3.0 の条件に従って利用および再配布が許可されます。
 
 ---
 
 ## 著作権表示
 
 Copyright © 2025 harumiWeb  
-このソフトウェアは，Artifex Software, Inc. により開発された Ghostscript を内部に組み込んでいます。  
+このソフトウェアは，Artifex Software, Inc. により開発された Ghostscript と PyMuPDF を内部に組み込んでいます。  
 Ghostscript の著作権表示とライセンスは以下のとおりです。
-
----
 
 ## ライセンス条項
 

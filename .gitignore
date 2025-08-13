@@ -10,4 +10,4 @@ wheels/
 .venv
 
 compressed
-installer/
+installer

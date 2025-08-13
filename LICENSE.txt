@@ -1,3 +1,28 @@
+# GNU Affero General Public License v3.0
+
+This software bundles Ghostscript and PyMuPDF internally and is released under the GNU Affero General Public License Version 3 (AGPL-3.0).  
+All code and binaries included in this application are permitted for use and redistribution under the terms of AGPL-3.0.
+
+---
+
+## Copyright Notice
+
+Copyright © 2025 harumiWeb  
+This software incorporates Ghostscript and PyMuPDF, developed by Artifex Software, Inc.  
+The copyright notice and license for Ghostscript are as follows.
+
+## License Terms
+
+This program is free software: you can redistribute it and/or modify it  
+under the terms of the GNU Affero General Public License Version 3  
+as published by the Free Software Foundation.  
+This program is distributed in the hope that it will be useful,  
+but WITHOUT ANY WARRANTY; without even the implied warranty of  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the license for more details.  
+You should have received a copy of the GNU Affero General Public License along with this program.  
+If not, you can obtain it from the following URL:  
+https://www.gnu.org/licenses/agpl-3.0.txt
+
                     GNU AFFERO GENERAL PUBLIC LICENSE
                        Version 3, 19 November 2007
 

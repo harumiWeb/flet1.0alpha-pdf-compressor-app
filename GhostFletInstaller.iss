@@ -51,7 +51,6 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: ".\dist\GhostFlet PDF\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: ".\dist\GhostFlet PDF\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "C:\Program Files\gs\gs10.05.1\bin\*"; DestDir: "{app}\_internal\assets\bin"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]
