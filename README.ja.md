@@ -75,6 +75,8 @@ cd flet1.0alpha-pdf-compressor-app
 このソフトウェアは，内部で Ghostscript と PyMuPDF をバンドルしており，GNU Affero General Public License Version 3（AGPL-3.0）の下で公開されています。  
 以下，このアプリケーションに含まれるすべてのコードとバイナリは AGPL-3.0 の条件に従って利用および再配布が許可されます。
 
+当アプリケーション内に組み込んでいる`GhostScript`やライブラリとして使用している`PyMuPDF`のソースコードに対しては一切のソースコード改変を行っていません。
+
 #### 著作権表示
 
 Copyright © 2025 harumiWeb  

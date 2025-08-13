@@ -6,6 +6,8 @@ It serves as a user-friendly **PDF conversion tool** that bundles [GhostScript](
 
 The app is released under the [AGPL-3.0 License](https://www.gnu.org/licenses/agpl-3.0.html), so please review the license before use.
 
+No source code modifications have been made to the GhostScript embedded in this application or the PyMuPDF library used in it.
+
 ## Features
 
 - Easy to use: Compress, extract pages, and merge `PDF` files with just a few clicks.
