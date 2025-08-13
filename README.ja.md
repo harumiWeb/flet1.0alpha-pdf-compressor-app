@@ -34,7 +34,14 @@
 
 ## 開発
 
-1. 環境のセットアップ
+### 1. リポジトリのクローン
+
+```bash
+git clone https://github.com/harumiWeb/flet1.0alpha-pdf-compressor-app.git
+cd flet1.0alpha-pdf-compressor-app
+```
+
+### 2. 環境のセットアップ
 
 - `requirements.txt`から作成する方法
 
@@ -48,14 +55,14 @@
   uv sync
   ```
 
-2. 開発サーバーの起動
+### 3. 開発サーバーの起動
 
 ```bash
   .venv/Scripts/activate
   flet run
 ```
 
-3. アプリケーションのビルド
+### 4. アプリケーションのビルド
 
 ```bash
   python dev/build.py
@@ -65,25 +72,22 @@
 
 ### GNU Affero General Public License v3.0
 
-This software bundles Ghostscript and PyMuPDF internally and is released under the GNU Affero General Public License Version 3 (AGPL-3.0).  
-All code and binaries included in this application are permitted for use and redistribution under the terms of AGPL-3.0.
+このソフトウェアは，内部で Ghostscript と PyMuPDF をバンドルしており，GNU Affero General Public License Version 3（AGPL-3.0）の下で公開されています。  
+以下，このアプリケーションに含まれるすべてのコードとバイナリは AGPL-3.0 の条件に従って利用および再配布が許可されます。
 
-#### Copyright Notice
+#### 著作権表示
 
 Copyright © 2025 harumiWeb  
-This software incorporates Ghostscript and PyMuPDF, developed by Artifex Software, Inc.  
-The copyright notice and license for Ghostscript are as follows.
+このソフトウェアは，Artifex Software, Inc. により開発された Ghostscript と PyMuPDF を内部に組み込んでいます。  
+Ghostscript の著作権表示とライセンスは以下のとおりです。
 
-#### License Terms
+#### ライセンス条項
 
-This program is free software: you can redistribute it and/or modify it  
-under the terms of the GNU Affero General Public License Version 3  
-as published by the Free Software Foundation.  
-This program is distributed in the hope that it will be useful,  
-but WITHOUT ANY WARRANTY; without even the implied warranty of  
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the license for more details.  
+このプログラムはフリーソフトウェアです。あなたはこれを再配布および／または改変することができます。  
+ただし，Free Software Foundation によって公表された GNU Affero General Public License Version 3 の条項に従うものとします。  
+このプログラムは有用であることを願って配布されますが，いかなる保証もありません。商品適格性や特定目的適合性についての黙示の保証も含め，一切責任を負いません。詳しくは本ライセンスをご覧ください。  
 You should have received a copy of the GNU Affero General Public License along with this program.  
-If not, you can obtain it from the following URL:  
+もし添付されていない場合は，次の URL から入手してください：  
 [https://www.gnu.org/licenses/agpl-3.0.txt](https://www.gnu.org/licenses/agpl-3.0.txt)
 
 See the [LICENSE](./LICENSE.txt) file for details.
